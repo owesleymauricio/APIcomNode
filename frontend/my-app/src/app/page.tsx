@@ -1,34 +1,52 @@
+'use client'
 import { Box, Button, Flex, Heading, Input, Text, Image } from "@chakra-ui/react";
+import api from "@/services/api";
+import { useEffect, useState, useRef } from "react";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  age: number;
+}
+
 
 
 export default function Home() {
+  const [users, setUsers] = useState<User[]>([])
 
-  const users = [
-    {
-      id: "10",
-      name: "wesley",
-      age: 30,
-      email: "wes@email.com"
-    },
-    {
-      id: "11",
-      name: "wes",
-      age: 35,
-      email: "w@email.com"
-    },
-    {
-      id: "12",
-      name: "ley",
-      age: 299,
-      email: "ley@email.com"
-    },
-    {
-      id: "13",
-      name: "Everlin",
-      age: 29,
-      email: "everlin@email.com"
-    }
-  ]
+
+  // passo esses valores para cada vaolr correspomdendte
+  const inputName = useRef<HTMLInputElement>(null); // Referência para o campo de nome
+  const inputEmail = useRef<HTMLInputElement>(null); // Referência para o campo de nome
+  const inputAge = useRef<HTMLInputElement>(null); // Referência para o campo de nome
+
+  async function getUsers() {
+   const usersApi = await api.get('/users')
+
+   setUsers(usersApi.data)
+   console.log(users)
+  }
+
+  async function createUsers() {
+    await api.post('users', {
+      name: inputName.current?.value,
+      age: inputAge.current?.value,
+      email: inputEmail.current?.value
+    })
+    getUsers() // vai atualizar a tela com o novo cadastro
+   }
+   
+  async function deleteUsers(id: string) {
+    await api.delete(`/users/${id}`)
+ 
+    getUsers() // vai atualizar a tela com o novo cadastro
+   }
+
+  useEffect(() => {
+   getUsers()
+  }, [])
+  
 
   return (
     <Flex
@@ -54,16 +72,17 @@ export default function Home() {
         <Heading>
           Cadastro Lufa Lufa
         </Heading>
-        <Input placeholder="Digite seu nome" type="text" />
-        <Input placeholder="Digite sua idade" type="text" />
-        <Input placeholder="Digite seu email" type="email" />
-        <Button colorScheme={'purple'}>
-          Cadastrar
+        <Input placeholder="Digite seu nome" type="text" ref={inputName}/>
+        <Input placeholder="Digite sua idade" type="text" ref={inputAge} />
+        <Input type="email" ref={inputEmail}/>
+        <Button onClick={createUsers} colorScheme={'purple'}>
+          <Text>Cadastrar</Text>
         </Button>
       </Box>
 
       {users.map((user) => (
         <Flex
+          key={user.id}
           alignItems={'center'}
           bg={'#483D8B'}
           width={'400px'}
@@ -76,7 +95,7 @@ export default function Home() {
         >
           <Flex
             flexDir={'column'}
-            key={user.id}
+            
             >
             <Text>Nome: {user.name} </Text>
             <Text>idade: {user.age} </Text>
@@ -88,6 +107,7 @@ export default function Home() {
             p={0}
             minW={0}
             h="auto"
+            onClick={() => deleteUsers(user.id)}
           >
             <Image
               src='./lixeira.svg'
